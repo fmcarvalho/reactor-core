@@ -18,6 +18,7 @@ package reactor.core.publisher;
 
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
+import java.util.function.LongConsumer;
 import java.util.stream.Stream;
 
 import org.reactivestreams.Processor;
@@ -27,6 +28,7 @@ import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.Scannable;
 import reactor.util.annotation.Nullable;
+import reactor.util.context.Context;
 
 /**
  * A base processor that exposes {@link Flux} API for {@link Processor}.
@@ -41,6 +43,77 @@ import reactor.util.annotation.Nullable;
  */
 public abstract class FluxProcessor<IN, OUT> extends Flux<OUT>
 		implements Processor<IN, OUT>, CoreSubscriber<IN>, Scannable, Disposable {
+
+	static final class SinkFacade<T> implements SimpleFluxSink<T> {
+
+		final FluxProcessor<T, T> fluxProcessor;
+		final FluxSink<T> sink;
+
+		SinkFacade(FluxProcessor<T, T> fluxProcessor) {
+			this.fluxProcessor = fluxProcessor;
+			this.sink = fluxProcessor.sink();
+		}
+
+		SinkFacade(FluxProcessor<T, T> fluxProcessor, OverflowStrategy overflowStrategy) {
+			this.fluxProcessor = fluxProcessor;
+			this.sink = fluxProcessor.sink(overflowStrategy);
+		}
+
+		@Override
+		public Flux<T> toFlux() {
+			return fluxProcessor;
+		}
+
+		@Override
+		public Mono<T> toMono() {
+			return fluxProcessor.next();
+		}
+
+		@Override
+		public void complete() {
+			sink.complete();
+		}
+
+		@Override
+		public Context currentContext() {
+			return sink.currentContext();
+		}
+
+		@Override
+		public void error(Throwable e) {
+			sink.error(e);
+		}
+
+		@Override
+		public FluxSink<T> next(T t) {
+			return sink.next(t);
+		}
+
+		@Override
+		public long requestedFromDownstream() {
+			return sink.requestedFromDownstream();
+		}
+
+		@Override
+		public boolean isCancelled() {
+			return sink.isCancelled();
+		}
+
+		@Override
+		public FluxSink<T> onRequest(LongConsumer consumer) {
+			return sink.onRequest(consumer);
+		}
+
+		@Override
+		public FluxSink<T> onCancel(Disposable d) {
+			return sink.onCancel(d);
+		}
+
+		@Override
+		public FluxSink<T> onDispose(Disposable d) {
+			return sink.onDispose(d);
+		}
+	}
 
 	/**
 	 * Build a {@link FluxProcessor} whose data are emitted by the most recent emitted {@link Publisher}.

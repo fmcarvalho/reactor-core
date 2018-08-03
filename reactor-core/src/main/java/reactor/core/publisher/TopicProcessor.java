@@ -66,8 +66,10 @@ import reactor.util.concurrent.WaitStrategy;
  * @param <E> Type of dispatched signal
  * @author Stephane Maldini
  * @author Anatoly Kadyshev
+ * @deprecated Direct usage of this class is discouraged, use async factory methods in {@link SimpleFluxProcessor} and {@link SimpleFluxSink} instead.
  */
-public final class TopicProcessor<E> extends EventLoopProcessor<E>  {
+@Deprecated
+public final class TopicProcessor<E> extends EventLoopProcessor<E> implements SimpleFluxProcessor<E> {
 
 	/**
 	 * {@link TopicProcessor} builder that can be used to create new
@@ -198,7 +200,9 @@ public final class TopicProcessor<E> extends EventLoopProcessor<E>  {
 		 * Creates a new {@link TopicProcessor} using the properties
 		 * of this builder.
 		 * @return a fresh processor
+		 * @deprecated chose either the manual {@link #buildSink() FluxSink} usage or the {@link #buildProcessor() processor} usage.
 		 */
+		@Deprecated
 		public TopicProcessor<T>  build() {
 			this.name = this.name != null ? this.name : TopicProcessor.class.getSimpleName();
 			this.waitStrategy = this.waitStrategy != null ? this.waitStrategy : WaitStrategy.phasedOffLiteLock(200, 100, TimeUnit.MILLISECONDS);
@@ -213,6 +217,15 @@ public final class TopicProcessor<E> extends EventLoopProcessor<E>  {
 					share,
 					autoCancel,
 					signalSupplier);
+		}
+
+		public SimpleFluxSink<T> buildSink() {
+			return new FluxProcessor.SinkFacade<>(build());
+		}
+
+		@SuppressWarnings("deprecation")
+		public SimpleFluxProcessor<T> buildProcessor() {
+			return build();
 		}
 	}
 
@@ -292,6 +305,21 @@ public final class TopicProcessor<E> extends EventLoopProcessor<E>  {
 
 		this.minimum = RingBuffer.newSequence(-1);
 		this.barrier = ringBuffer.newReader();
+	}
+
+	@Override
+	public Flux<E> toFlux() {
+		return this;
+	}
+
+	@Override
+	public Mono<E> toMono() {
+		return this.next();
+	}
+
+	@Override
+	public FluxProcessor<E, E> toFluxProcessor() {
+		return this;
 	}
 
 	@Override

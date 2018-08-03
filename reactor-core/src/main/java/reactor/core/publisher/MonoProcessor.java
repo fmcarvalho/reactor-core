@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
@@ -50,7 +51,7 @@ import reactor.util.context.Context;
  */
 public final class MonoProcessor<O> extends Mono<O>
 		implements Processor<O, O>, CoreSubscriber<O>, Disposable, Subscription,
-		           Scannable,
+		           Scannable, SimpleMonoProcessor<O>,
 		           LongSupplier {
 
 	/**
@@ -117,6 +118,21 @@ public final class MonoProcessor<O> extends Mono<O>
 		this.waitStrategy = Objects.requireNonNull(waitStrategy, "waitStrategy");
 		this.source = source;
 		SUBSCRIBERS.lazySet(this, source != null ? EMPTY_WITH_SOURCE : EMPTY);
+	}
+
+	@Override
+	public Mono<O> toMono() {
+		return this;
+	}
+
+	@Override
+	public Flux<O> toFlux() {
+		return this.flux();
+	}
+
+	@Override
+	public Processor<O, O> toMonoProcessor() {
+		return this;
 	}
 
 	@Override

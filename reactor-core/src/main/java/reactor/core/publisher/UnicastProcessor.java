@@ -84,10 +84,13 @@ import reactor.util.context.Context;
  * </p>
  *
  * @param <T> the input and output type
+ * @deprecated Direct usage of this class is discouraged, use unicast factory methods in {@link SimpleFluxProcessor} and {@link SimpleFluxSink} instead.
  */
+@Deprecated
 public final class UnicastProcessor<T>
 		extends FluxProcessor<T, T>
-		implements Fuseable.QueueSubscription<T>, Fuseable, InnerOperator<T, T> {
+		implements Fuseable.QueueSubscription<T>, Fuseable, InnerOperator<T, T>,
+		           SimpleFluxProcessor<T> {
 
 	/**
 	 * Create a new {@link UnicastProcessor} that will buffer on an internal queue in an
@@ -193,6 +196,21 @@ public final class UnicastProcessor<T>
 		this.queue = Objects.requireNonNull(queue, "queue");
 		this.onOverflow = Objects.requireNonNull(onOverflow, "onOverflow");
 		this.onTerminate = Objects.requireNonNull(onTerminate, "onTerminate");
+	}
+
+	@Override
+	public Flux<T> toFlux() {
+		return this;
+	}
+
+	@Override
+	public Mono<T> toMono() {
+		return this.next();
+	}
+
+	@Override
+	public FluxProcessor<T, T> toFluxProcessor() {
+		return this;
 	}
 
 	@Override
