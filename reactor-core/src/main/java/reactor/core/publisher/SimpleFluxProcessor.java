@@ -465,7 +465,9 @@ public interface SimpleFluxProcessor<T> extends Processor<T, T> {
 	 */
 	@SuppressWarnings("deprecation")
 	static <O> SimpleFluxProcessor<O> async() {
-		return TopicProcessor.<O>builder().share(true).build();
+		return TopicProcessor.<O>builder()
+				.share(true)
+				.buildProcessor();
 	}
 
 	/**
@@ -486,7 +488,11 @@ public interface SimpleFluxProcessor<T> extends Processor<T, T> {
 	 */
 	@SuppressWarnings("deprecation")
 	static <O> SimpleFluxProcessor<O> async(String name, int bufferSize) {
-		return TopicProcessor.<O>builder().share(true).name(name).bufferSize(bufferSize).build();
+		return TopicProcessor.<O>builder()
+				.share(true)
+				.name(name)
+				.bufferSize(bufferSize)
+				.buildProcessor();
 	}
 
 	/**
@@ -504,7 +510,11 @@ public interface SimpleFluxProcessor<T> extends Processor<T, T> {
 	 */
 	@SuppressWarnings("deprecation")
 	static <O> SimpleFluxProcessor<O> asyncUnshared(String name, int bufferSize) {
-		return TopicProcessor.<O>builder().share(false).name(name).bufferSize(bufferSize).build();
+		return TopicProcessor.<O>builder()
+				.share(false)
+				.name(name)
+				.bufferSize(bufferSize)
+				.buildProcessor();
 	}
 
 }

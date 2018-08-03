@@ -69,7 +69,7 @@ import reactor.util.concurrent.WaitStrategy;
  * @deprecated Direct usage of this class is discouraged, use async factory methods in {@link SimpleFluxProcessor} and {@link SimpleFluxSink} instead.
  */
 @Deprecated
-public final class TopicProcessor<E> extends EventLoopProcessor<E> implements SimpleFluxProcessor<E> {
+public final class TopicProcessor<E> extends EventLoopProcessor<E> {
 
 	/**
 	 * {@link TopicProcessor} builder that can be used to create new
@@ -305,21 +305,6 @@ public final class TopicProcessor<E> extends EventLoopProcessor<E> implements Si
 
 		this.minimum = RingBuffer.newSequence(-1);
 		this.barrier = ringBuffer.newReader();
-	}
-
-	@Override
-	public Flux<E> toFlux() {
-		return this;
-	}
-
-	@Override
-	public Mono<E> toMono() {
-		return this.next();
-	}
-
-	@Override
-	public FluxProcessor<E, E> toFluxProcessor() {
-		return this;
 	}
 
 	@Override
